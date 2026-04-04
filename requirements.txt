@@ -1,0 +1,16 @@
+# ClearView v2 — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# UI framework
+PySide6>=6.6.0
+
+# Video decoding (frame extraction)
+opencv-python>=4.9.0
+
+# AI detection
+nudenet>=3.4.2        # installs onnxruntime as dependency
+
+# GPU acceleration
+onnxruntime-directml  # AMD / Intel / NVIDIA via DirectX 12 (Windows)
+# onnxruntime-gpu     # NVIDIA CUDA only
+# onnxruntime         # CPU fallback

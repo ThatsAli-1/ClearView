@@ -1,0 +1,33 @@
+{
+  "version": 7,
+  "video": "C:/Users/ActualAli/Downloads/The Pitt S02E13 7 00 P M 2160p HMAX WEB-DL DDP5 1 Atmos DV HDR H 265-FLUX.mkv",
+  "enabled_categories": [
+    "anus",
+    "breast",
+    "buttocks",
+    "genitalia_f",
+    "genitalia_m",
+    "kissing"
+  ],
+  "meta": {},
+  "scenes": [
+    {
+      "start": 171.172,
+      "end": 173.672,
+      "duration": 2.5,
+      "peak_confidence": 0.5225,
+      "categories": [
+        "kissing"
+      ]
+    },
+    {
+      "start": 2202.201,
+      "end": 2204.701,
+      "duration": 2.5,
+      "peak_confidence": 0.5611,
+      "categories": [
+        "breast"
+      ]
+    }
+  ]
+}
