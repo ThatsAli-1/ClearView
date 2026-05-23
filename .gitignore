@@ -1,0 +1,49 @@
+# ClearView — .gitignore
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Generated scan artifacts (scans/ folder is tracked, its contents are not) ─
+scans/*_clearview.json
+scans/*_clearview.edl
+!scans/.gitkeep
+
+# ── Stale root-level scan artifacts (pre-migration) ───────────────────────────
+*_clearview.json
+*_clearview.edl
+
+# ── PyInstaller output ─────────────────────────────────────────────────────────
+dist/
+build/
+*.spec
+
+# ── IDE / OS ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# ── Model cache (downloaded at runtime, not committed) ────────────────────────
+*.onnx
+*.onnx.tmp
+
+# ── Logs & temporary files ─────────────────────────────────────────────────────
+*.log
+*.tmp

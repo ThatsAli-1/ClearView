@@ -2,6 +2,9 @@
 core/sidecar.py
 Save and load scan results as JSON inside the project's scans/ folder.
 If a sidecar exists and is newer than the video, the scan is skipped.
+
+All output files are written to <project_root>/scans/ for a clean project root.
+The folder is created automatically on first use.
 """
 from __future__ import annotations
 
@@ -15,17 +18,23 @@ from core.scene_grouper import Scene
 # Increment this when the detection logic changes to force re-scans
 SIDECAR_SCHEMA_VERSION = 7
 
-# All scan results are stored here (inside the project directory)
-_PROJECT_DIR = Path(__file__).resolve().parent.parent
+# All scan results are stored in the scans/ subfolder (organised, off the root)
+_SCANS_DIR = Path(__file__).resolve().parent.parent / "scans"
+_SCANS_DIR.mkdir(exist_ok=True)  # auto-create on first import
+
+
+def scans_dir() -> Path:
+    """Return the absolute path to the scans output directory."""
+    return _SCANS_DIR
 
 
 def sidecar_path(video_path: str | Path) -> Path:
-    """Return the sidecar path saved directly in the project root folder.
-    
-    The filenames will directly match the video filename plus _clearview.json.
+    """Return the sidecar path inside the scans/ folder.
+
+    The filename matches the video stem plus _clearview.json.
     """
     p = Path(video_path)
-    return _PROJECT_DIR / f"{p.stem}_clearview.json"
+    return _SCANS_DIR / f"{p.stem}_clearview.json"
 
 
 def is_fresh(video_path: str | Path, enabled: Optional[set] = None) -> bool:
