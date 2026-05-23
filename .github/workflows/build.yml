@@ -1,0 +1,95 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"          # Triggers on version tags like v2.0, v2.1, etc.
+  workflow_dispatch:   # Also allows manual trigger from the GitHub UI
+
+permissions:
+  contents: write      # Needed to create GitHub Releases and upload assets
+
+jobs:
+  build-windows:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ─────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller pillow
+
+      # ── 4. Build with PyInstaller ─────────────────────────────────────────────
+      - name: Build with PyInstaller
+        run: pyinstaller ClearView.spec
+
+      # ── 5. Verify the exe exists ──────────────────────────────────────────────
+      - name: Verify build output
+        run: |
+          if (!(Test-Path "dist\ClearView\ClearView.exe")) {
+            Write-Error "ClearView.exe not found in dist\ClearView\"
+            exit 1
+          }
+          Write-Host "Build successful!"
+          Get-Item "dist\ClearView\ClearView.exe" | Select-Object Name, Length
+
+      # ── 6. Install Inno Setup ─────────────────────────────────────────────────
+      - name: Install Inno Setup 6
+        run: |
+          $url = "https://jrsoftware.org/download.php/is.exe"
+          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\innosetup.exe"
+          Start-Process -FilePath "$env:TEMP\innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -Wait
+        shell: pwsh
+
+      # ── 7. Build the installer ────────────────────────────────────────────────
+      - name: Build Inno Setup installer
+        run: |
+          New-Item -ItemType Directory -Path "installer\Output" -Force | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\clearview_setup.iss"
+        shell: pwsh
+
+      # ── 8. Get version for the release name ───────────────────────────────────
+      - name: Get version
+        id: get_version
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ($tag -eq "") { $tag = "dev" }
+          echo "VERSION=$tag" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      # ── 9. Upload installer as GitHub Release asset ───────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: "ClearView ${{ steps.get_version.outputs.VERSION }}"
+          draft: false
+          prerelease: false
+          files: |
+            installer/Output/ClearView_Setup_v2.0.exe
+          body: |
+            ## ClearView ${{ steps.get_version.outputs.VERSION }}
+
+            ### Install
+            Download **ClearView_Setup_v2.0.exe** and run it. No admin rights required.
+
+            On first launch, the app will download the AI model (~99 MB) from Hugging Face.
+
+            ### Requirements
+            - Windows 10/11 (64-bit)
+            - GPU optional (DirectX 12 / DirectML for acceleration)
+            - Internet connection for first-time model download

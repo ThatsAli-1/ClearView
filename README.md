@@ -720,16 +720,57 @@ On first launch, the app downloads `640m.onnx` (~99 MB) from Hugging Face. This 
 
 ---
 
-## 11. Packaging to `.exe`
+## 11. Download & Install
+
+### Option A — Download the Installer (Recommended)
+
+Go to the [GitHub Releases page](https://github.com/ThatsAli-1/ClearView/releases) and download **`ClearView_Setup_v2.0.exe`**.
+
+- Double-click to install — **no admin rights required**.
+- Creates a Start Menu entry and optional Desktop shortcut.
+- On first launch, ClearView downloads the AI model (~99 MB) from Hugging Face automatically.
+- Registered in Add/Remove Programs for clean uninstallation.
+
+### Option B — Build from Source
+
+#### Step 1: Install dependencies
 
 ```bash
+pip install -r requirements.txt
 pip install pyinstaller
-pyinstaller --onedir --windowed --name ClearView main.py
 ```
 
-The resulting `dist/ClearView/` folder contains a self-contained executable. The `640m.onnx` model will still be downloaded to `~/.clearview/models/` on first run of the packaged app.
+#### Step 2: Build with PyInstaller
 
-> Use `--onedir` (not `--onefile`) to avoid slow startup from temp-directory extraction; PySide6 and ONNX runtime are large.
+```bash
+pyinstaller ClearView.spec
+```
+
+This creates `dist/ClearView/ClearView.exe` — a fully self-contained directory.
+The `640m.onnx` model is **not** bundled; it downloads to `~/.clearview/models/` on first run.
+
+> Use the spec file (not bare CLI flags) — it correctly collects NudeNet data files, PySide6 Qt plugins, and ONNX runtime DLLs.
+
+#### Step 3 (Optional): Build the Windows Installer
+
+Requires **[Inno Setup 6](https://jrsoftware.org/isdl.php)** (free).
+
+```bash
+iscc installer\clearview_setup.iss
+```
+
+Output: `installer\Output\ClearView_Setup_v2.0.exe`
+
+### Automated Builds via GitHub Actions
+
+A CI/CD workflow (`.github/workflows/build.yml`) automatically builds the installer whenever a version tag is pushed:
+
+```bash
+git tag v2.0
+git push origin v2.0
+```
+
+GitHub Actions will build on Windows, produce the installer, and attach it to a GitHub Release.
 
 ---
 
@@ -744,7 +785,7 @@ The resulting `dist/ClearView/` folder contains a self-contained executable. The
 | **IMDb scraping** | The sidebar has an IMDb rating lookup that is frequently rate-limited or blocked — the manual severity dropdown is the reliable path. |
 | **One ONNX runtime variant** | Only one `onnxruntime-*` variant can be installed at a time (CPU, DirectML, or CUDA). Having multiple creates provider-selection conflicts. |
 | **FFmpeg dependency** | `BlurExporter`'s audio muxing requires FFmpeg on PATH. Without it, the output is video-only. |
-| **Sidecar location** | Sidecars are stored in the project directory, not beside the video. Moving the video without moving the sidecar loses the cache. |
+| **Sidecar location** | ~~Sidecars are stored in the project directory, not beside the video.~~ **Fixed in v2.0** — sidecars are now stored in `scans/` subfolder, and the directory is gitignored. |
 | **No subtitle / chapter awareness** | The scanner cannot correlate detections with SRT subtitles or chapter markers, which could improve context-aware skip decisions. |
 
 ### Potential Future Improvements
